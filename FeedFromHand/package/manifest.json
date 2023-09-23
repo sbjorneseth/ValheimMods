@@ -1,7 +1,9 @@
 {
     "name": "FeedFromHand",
-    "version_number": "1.0.0",
-    "website_url": "https://github.com/thunderstore-io",
-    "description": "This mod enables you to feed your tamed animals from your hand.",
-    "dependencies": []
+    "version_number": "1.0.1",
+    "website_url": "",
+    "description": "A mod that enables you to feed your tamed animals from your hand, like Minecraft.",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2105"
+    ]
 }
