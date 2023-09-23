@@ -1,1 +1,10 @@
-.vs
+*.bat
+*.ps1
+/.vs/**
+**/*.user
+/*/art/**
+/*/bin/**
+/*/obj/**
+/*/libs/**
+/*/package/*.dll
+/*/package/*.zip
