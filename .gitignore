@@ -1,10 +1,11 @@
 *.bat
 *.ps1
-/.vs/**
+/*/.vs/**
+/*/*.sln
 **/*.user
-/*/art/**
-/*/bin/**
-/*/obj/**
-/*/libs/**
+/*/*/art/**
+/*/*/bin/**
+/*/*/obj/**
+/*/*/libs/**
 /*/package/*.dll
 /*/package/*.zip

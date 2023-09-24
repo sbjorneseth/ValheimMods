@@ -1,6 +1,6 @@
 {
     "name": "FeedFromHand",
-    "version_number": "1.0.3",
+    "version_number": "1.0.5",
     "website_url": "https://github.com/sbjorneseth/ValheimMods/tree/main/FeedFromHand/package",
     "description": "A mod that enables you to feed your tamed animals from your hand, like Minecraft.",
     "dependencies": [

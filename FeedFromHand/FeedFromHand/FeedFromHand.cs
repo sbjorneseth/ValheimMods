@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace FeedFromHand
 {
-    [BepInPlugin("org.bepinex.plugins.feedfromhand", "Feed From Hand", "1.0.3")]
+    [BepInPlugin("org.bepinex.plugins.feedfromhand", "Feed From Hand", "1.0.5")]
     [BepInProcess("valheim.exe")]
     public class FeedFromHand : BaseUnityPlugin
     {
