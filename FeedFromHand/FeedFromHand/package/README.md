@@ -5,4 +5,4 @@ Feed From Hand is a mod that lets you interact with your furry friends in a more
 
 Contact me via discord (Peeko#5871) or GitHub (sbjorneseth) if you experience any issues or have any suggestions.
 
-<img src="https://raw.githubusercontent.com/sbjorneseth/ValheimMods/main/FeedFromHand/package/FeedFromHand.png">
+<img src="https://github.com/sbjorneseth/ValheimMods/blob/main/FeedFromHand/FeedFromHand/package/icon.png">
