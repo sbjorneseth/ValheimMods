@@ -7,5 +7,5 @@
 /*/*/bin/**
 /*/*/obj/**
 /*/*/libs/**
-/*/package/*.dll
-/*/package/*.zip
+/*/*/package/*.dll
+/*/*/package/*.zip
