@@ -54,6 +54,7 @@ namespace FeedFromHand
             public static int HealingReceived = 50;
             public static bool SuccessMessage = true;
             public static string SuccessMessageText;
+
             public static bool Prefix(Humanoid __instance, ItemDrop.ItemData item)
             {
                 GameObject hoverObject = __instance.GetHoverObject();
@@ -93,7 +94,6 @@ namespace FeedFromHand
                     tameable.Interact(humanoid, false, false);
                     __instance.DoInteractAnimation(hoverObject.transform.position);
 
-                    
                     Inventory inventory = __instance.GetInventory();
                     inventory.RemoveOneItem(item);
                     
