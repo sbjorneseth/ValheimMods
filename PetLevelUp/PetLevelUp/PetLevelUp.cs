@@ -1,12 +1,12 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+using System;
 using UnityEngine;
 
 namespace PetLevelUp
 {
-    [BepInPlugin("org.bepinex.plugins.PetLevelUp", "Pet LevelUp", "1.0.0")]
+    [BepInPlugin("org.bepinex.plugins.PetLevelUp", "PetLevelUp", "1.0.0")]
     [BepInProcess("valheim.exe")]
     public class PetLevelUp : BaseUnityPlugin
     {
@@ -15,101 +15,122 @@ namespace PetLevelUp
         void Awake()
         {
             harmony.PatchAll();
+
+            LevelOneXPRequirement = ((BaseUnityPlugin)this).Config.Bind<int>("PetLevelUp", "LevelOneXPRequirement", PetLevelUp_Patch.LevelOneXPRequirement, "xp required for pet to level up");
+            LevelTwoXPRequirement = ((BaseUnityPlugin)this).Config.Bind<int>("PetLevelUp", "LevelTwoXPRequirement", PetLevelUp_Patch.LevelTwoXPRequirement, "xp required for pet to level up");
+            XPFromAttacking = ((BaseUnityPlugin)this).Config.Bind<bool>("PetLevelUp", "XPFromAttacking", PetLevelUp_Patch.XPFromAttacking, "Description of setting 3");
+            XPFromDefending = ((BaseUnityPlugin)this).Config.Bind<bool>("PetLevelUp", "XPFromDefending", PetLevelUp_Patch.XPFromDefending, "Description of setting 3");
+
+            LevelOneXPRequirement.SettingChanged += LevelOneXPRequirement_SettingChanged;
+            LevelTwoXPRequirement.SettingChanged += LevelTwoXPRequirement_SettingChanged;
+            XPFromAttacking.SettingChanged += XPFromAttacking_SettingChanged;
+            XPFromDefending.SettingChanged += XPFromAttacking_SettingChanged;
+
+            SettingsChanged();
         }
-        //public static int xp = 0;
-        
-        //[HarmonyPatch(typeof(MonsterAI), nameof(MonsterAI.DoAttack))]
-        //public static class MonsterAI_DoAttack_Postfix_Patch
-        //{
-        //    public static void Postfix(Character ___m_character, Character target)
-        //    {
-        //        if (___m_character.IsTamed())
-        //        {
-        //            Debug.Log(___m_character.GetHoverName() + " attacked " + target.GetHoverName());
-        //
-        //            xp++;
-        //
-        //            Debug.Log(xp);
-        //
-        //            int CurrentLevel = ___m_character.GetLevel();
-        //            if (xp >= 5 && CurrentLevel == 1)
-        //            {
-        //                ___m_character.SetLevel(CurrentLevel + 1);
-        //            }
-        //            else if (xp >= 10 && CurrentLevel == 2)
-        //            {
-        //                ___m_character.SetLevel(CurrentLevel + 1);
-        //            }
-        //        }
-        //    }
-        //}
-        [HarmonyPatch(typeof(Character), nameof(Character.Damage))]
-        public static class Character_Damage_Prefix_Patch
+        private ConfigEntry<int> LevelOneXPRequirement;
+        private ConfigEntry<int> LevelTwoXPRequirement;
+        private ConfigEntry<bool> XPFromAttacking;
+        private ConfigEntry<bool> XPFromDefending;
+
+        private void SettingsChanged()
         {
-            public static void Prefix(Character __instance, ref HitData hit, ZNetView ___m_nview)
+            LevelOneXPRequirement_SettingChanged(null, null);
+            LevelTwoXPRequirement_SettingChanged(null, null);
+            XPFromAttacking_SettingChanged(null, null);
+            XPFromDefending_SettingChanged(null, null);
+        }
+        private void LevelOneXPRequirement_SettingChanged(object sender, EventArgs e)
+        {
+            PetLevelUp_Patch.LevelOneXPRequirement = LevelOneXPRequirement.Value;
+        }
+        private void LevelTwoXPRequirement_SettingChanged(object sender, EventArgs e)
+        {
+            PetLevelUp_Patch.LevelTwoXPRequirement = LevelTwoXPRequirement.Value;
+        }
+        private void XPFromAttacking_SettingChanged(object sender, EventArgs e)
+        {
+            PetLevelUp_Patch.XPFromAttacking = XPFromAttacking.Value;
+        }
+        private void XPFromDefending_SettingChanged(object sender, EventArgs e)
+        {
+            PetLevelUp_Patch.XPFromDefending = XPFromDefending.Value;
+        }
+
+        [HarmonyPatch]
+        internal class PetLevelUp_Patch
+        {
+            public static int LevelOneXPRequirement = 500;
+            public static int LevelTwoXPRequirement = 1000;
+            public static bool XPFromAttacking = true;
+            public static bool XPFromDefending = true;
+
+            [HarmonyPatch(typeof(Character), nameof(Character.Damage))]
+            public static class Character_Damage_Prefix_Patch
             {
-                if (!___m_nview.IsValid())
+                public static void Prefix(Character __instance, ref HitData hit, ZNetView ___m_nview)
                 {
-                    Debug.Log("ZNetView not valid!");
-                    return;
-                }
-                if (hit == null)
-                {
-                    Debug.Log("No HitData found!");
-                    return;
-                }
-                if (__instance == null)
-                {
-                    Debug.Log("No character found!");
-                    return;
-                }
-                Character attacker = hit.GetAttacker();
-                float totalDamage = hit.GetTotalDamage();
+                    Character defender = __instance;
+                    if (!___m_nview.IsValid())
+                    {
+                        Debug.Log("ZNetView not valid!");
+                        return;
+                    }
+                    if (hit == null)
+                    {
+                        Debug.Log("No HitData found!");
+                        return;
+                    }
+                    if (defender == null)
+                    {
+                        Debug.Log("No defender found!");
+                        return;
+                    }
+                    Character attacker = hit.GetAttacker();
+                    if (attacker == null)
+                    {
+                        Debug.Log("No attacker found!");
+                        return;
+                    }
+                    Debug.Log("Attacker = " + attacker);
+                    Debug.Log("Defender = " + defender);
+                    if (attacker.IsTamed())
+                    {
+                        defender = null;
+                    }
+                    else if (defender.IsTamed())
+                    {
+                        attacker = null;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    if (attacker && XPFromAttacking == true || defender && XPFromDefending == true)
+                    {
+                        Character pet = attacker ? attacker : defender ? defender : null;
+                        Debug.Log("Pet = " + pet);
+                        ZNetView znetview = pet.GetComponentInParent<ZNetView>();
+                        ZDO zdo = znetview.GetZDO();
+                        int currentXP = zdo.GetInt("xp", 0);
+                        int newXP = currentXP + 1;
 
-                if (!attacker.IsTamed())
-                {
-                    Debug.Log("attacker is not tamed.");
-                    return;
+                        zdo.Set("xp", newXP);
+
+                        Debug.Log("zdo = " + zdo.GetInt("xp", 0));
+
+                        int CurrentLevel = pet.GetLevel();
+                        if (newXP >= LevelOneXPRequirement && CurrentLevel == 1)
+                        {
+                            pet.SetLevel(CurrentLevel + 1);
+                        }
+                        else if (newXP >= LevelTwoXPRequirement && CurrentLevel == 2)
+                        {
+                            pet.SetLevel(CurrentLevel + 1);
+                        }
+                    }
                 }
-                Debug.Log("Damage dealt: " + totalDamage);
-
-                ZNetView znetview = attacker.GetComponentInParent<ZNetView>();
-                ZDO zdo = znetview.GetZDO();
-
-                int currentXP = zdo.GetInt("xpAttack", 0);
-                int newXP = currentXP + 1;
-
-                zdo.Set("xpAttack", newXP); // 2
-
-                Debug.Log(zdo.GetInt("xpAttack", 0));
-
-                int CurrentLevel = attacker.GetLevel();
-                if (newXP >= 10 && CurrentLevel == 1)
-                {
-                    attacker.SetLevel(CurrentLevel + 1);
-                }
-                else if (newXP >= 20 && CurrentLevel == 2)
-                {
-                    attacker.SetLevel(CurrentLevel + 1);
-                }
-                //"xpAttack" 0-1000
-                //"levelAttack" 0-10
             }
         }
-        [HarmonyPatch(typeof(Character), nameof(Character.OnDamaged))]
-        public static class Character_OnDamaged_Prefix_Patch
-        {
-            public static void Prefix(Character __instance, ref HitData hit)
-            {
-                //"xpDefence" 0-1000
-                //"levelDefence" 0-10
-            }
-        }
-        //"xpAttack" 0-1000
-        //"levelAttack" 0-10
-        //"xpDefence" 0-1000
-        //"levelDefence" 0-10
-        //"xpMobility" 0-1000
-        //"levelAttack" 0-10
     }
 }
